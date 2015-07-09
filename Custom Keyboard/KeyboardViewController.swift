@@ -22,11 +22,12 @@ class KeyboardViewController: UIInputViewController {
     var holdingKey = "abcd"
     var holdingHasPressed = false
     var pressed = "abcd"
+    var charPressed = ""
     var tappedBlank = false
     var pan: UIPanGestureRecognizer!
 //    var hold: UILongPressGestureRecognizer!
     var views = [
-        "letters": ["abcd","efgh","ijkl", "mnop", "qrst", "uvwx", "yz.,", "?!⏎#"],
+        "letters": ["abcd","efgh","ijkl", "mnop", "qrst", "uvwx", "yz.,", "?!⏎'"],
         "symbols": ["123456", "{}\"@", "7890<>", "#$%^", "&*()", "-_=+`~", "/:;'", "\\[]|"],
         "caps": ["ABCD","EFGH","IJKL", "MNOP", "QRST", "UVWX", "YZ.,", "?!⏎#"]
     ]
@@ -45,9 +46,13 @@ class KeyboardViewController: UIInputViewController {
         super.viewDidLoad()
         UIView.setAnimationsEnabled(false)
         pan = UIPanGestureRecognizer(target: self, action: "respondToPan:")
-//        swipeRight.cancelsTouchesInView = true
-//        swipeRight.delaysTouchesBegan = true
+        pan.cancelsTouchesInView = false
+        pan.delaysTouchesBegan = false
         self.view.addGestureRecognizer(pan)
+        
+        var press = UILongPressGestureRecognizer(target: self, action: "holdHandler:")
+        press.minimumPressDuration = 0.3
+        self.view.addGestureRecognizer(press)
 //
 //        var swipeLeft = UISwipeGestureRecognizer(target: self, action: "respondToSwipe:")
 //        swipeLeft.direction = UISwipeGestureRecognizerDirection.Left
@@ -84,9 +89,11 @@ class KeyboardViewController: UIInputViewController {
             } else {
                 updateKeys("letters")
             }
-        }
-        if self.pressed == "" {
+        } else if self.pressed == "" {
             self.tappedBlank = true
+        } else {
+            self.charPressed = self.pressed
+            self.toggle = true
         }
     }
 
@@ -94,7 +101,7 @@ class KeyboardViewController: UIInputViewController {
         let title = sender.titleForState(.Normal)!
         if title == "" {
             if self.holdingHasPressed {
-                resetKeys()
+//                resetKeys()
             }
             if self.tappedBlank {
                 self.tappedBlank = false
@@ -119,21 +126,22 @@ class KeyboardViewController: UIInputViewController {
             }
         }
         if self.holdingHasPressed {
-            pan.enabled = false
+//            pan.enabled = false
         }
     }
-    
+
     func respondToPan(gesture: UIPanGestureRecognizer) {
 //        hold = UILongPressGestureRecognizer(target: self, action: "holdHandler:")
 //        hold.minimumPressDuration = 0.2
         if gesture.state == UIGestureRecognizerState.Began {
-            resetKeys()
+//            resetKeys()
 //            self.view.addGestureRecognizer(hold)
         }
         if gesture.state == UIGestureRecognizerState.Ended {
             var velocity = gesture.velocityInView(self.view)
             if velocity.y > 0 && abs(velocity.y) > abs(velocity.x) {
                 // swipe down
+
                 if self.symbols {
                     self.symbols = false
                     self.caps = false
@@ -147,29 +155,41 @@ class KeyboardViewController: UIInputViewController {
                     self.symbols = false
                     self.caps = true
                     resetKeys()
+                
                 }
             } else if velocity.y < 0 && abs(velocity.y) > abs(velocity.x) {
                 // swipe up
-                if self.symbols {
-                    self.caps = true
-                    self.symbols = false
-                    resetKeys()
-                } else if self.caps {
-                    self.caps = false
-                    self.symbols = false
-                    resetKeys()
+                if self.toggle {
+                    var proxy = textDocumentProxy as! UITextDocumentProxy
+                    proxy.insertText(self.charPressed.uppercaseString)
+                    if self.holdingHasPressed && !self.holding {
+                        resetKeys()
+                    } else if !holdingHasPressed {
+                        resetKeys()
+                    }
                 } else {
-                    self.symbols = true
-                    self.caps = false
-                    resetKeys()
-
+                    if self.symbols {
+                        self.caps = true
+                        self.symbols = false
+                        resetKeys()
+                    } else if self.caps {
+                        self.caps = false
+                        self.symbols = false
+                        resetKeys()
+                    } else {
+                        self.symbols = true
+                        self.caps = false
+                        resetKeys()
+                }
                 }
             } else if velocity.x > 0 {
                 var proxy = textDocumentProxy as! UITextDocumentProxy
                 proxy.insertText(" ")
+                resetKeys()
             } else if velocity.x < 0 {
                 var proxy = textDocumentProxy as! UITextDocumentProxy
                 proxy.deleteBackward()
+                resetKeys()
             }
 //            self.view.removeGestureRecognizer(hold)
         }
@@ -194,10 +214,35 @@ class KeyboardViewController: UIInputViewController {
 //        }
 //    }
     
+    @IBAction func touchUpOutside(sender: UIButton) {
+//        let title = sender.titleForState(.Normal)!
+//
+//        if count(title) == 1 {
+//            var proxy = textDocumentProxy as! UITextDocumentProxy
+//            if title == "⏎" {
+//                proxy.insertText("\n")
+//            } else {
+//                proxy.insertText(title.uppercaseString)
+//            }
+//            if self.holding {
+//                self.holdingHasPressed = true
+//            } else {
+//                resetKeys()
+//            }
+//        }
+//        if self.holdingHasPressed {
+//            pan.enabled = false
+//        }
+    }
+    
     func holdHandler(gesture: UIGestureRecognizer) {
-        if gesture.state != UIGestureRecognizerState.Ended {
-            var proxy = textDocumentProxy as! UITextDocumentProxy
-            proxy.insertText(" ")
+        if gesture.state == UIGestureRecognizerState.Began {
+//            pan.enabled = false
+        }
+        if gesture.state == UIGestureRecognizerState.Ended {
+            if self.holdingHasPressed {
+                resetKeys()
+            }
         }
     }
     
@@ -246,6 +291,7 @@ class KeyboardViewController: UIInputViewController {
     }
 
     func resetKeys() {
+        self.toggle = false
         var set: Array<String>
         if self.symbols {
             set = self.views["symbols"]!

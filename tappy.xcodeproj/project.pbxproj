@@ -246,7 +246,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 4FDF61CC1AF53442009F58BF /* Build configuration list for PBXProject "Keyboard" */;
+			buildConfigurationList = 4FDF61CC1AF53442009F58BF /* Build configuration list for PBXProject "tappy" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -431,6 +431,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -523,7 +524,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4FDF61CC1AF53442009F58BF /* Build configuration list for PBXProject "Keyboard" */ = {
+		4FDF61CC1AF53442009F58BF /* Build configuration list for PBXProject "tappy" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4FDF61EE1AF53443009F58BF /* Debug */,
